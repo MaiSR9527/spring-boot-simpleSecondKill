@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.msr.kill.mapper.ItemKillMapper">
+    <resultMap id="BaseResultMap" type="com.msr.kill.entity.ItemKill">
+        <!--@mbg.generated-->
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="item_id" jdbcType="INTEGER" property="itemId"/>
+        <result column="total" jdbcType="INTEGER" property="total"/>
+        <result column="start_time" jdbcType="TIMESTAMP" property="startTime"/>
+        <result column="end_time" jdbcType="TIMESTAMP" property="endTime"/>
+        <result column="is_active" jdbcType="TINYINT" property="isActive"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        id, item_id, total, start_time, end_time, is_active, create_time
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        <!--@mbg.generated-->
+        select
+        <include refid="Base_Column_List"/>
+        from item_kill
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        <!--@mbg.generated-->
+        delete from item_kill
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+    <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.msr.kill.entity.ItemKill"
+            useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into item_kill (item_id, total, start_time,
+        end_time, is_active, create_time
+        )
+        values (#{itemId,jdbcType=INTEGER}, #{total,jdbcType=INTEGER}, #{startTime,jdbcType=TIMESTAMP},
+        #{endTime,jdbcType=TIMESTAMP}, #{isActive,jdbcType=TINYINT}, #{createTime,jdbcType=TIMESTAMP}
+        )
+    </insert>
+    <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.msr.kill.entity.ItemKill"
+            useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into item_kill
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="itemId != null">
+                item_id,
+            </if>
+            <if test="total != null">
+                total,
+            </if>
+            <if test="startTime != null">
+                start_time,
+            </if>
+            <if test="endTime != null">
+                end_time,
+            </if>
+            <if test="isActive != null">
+                is_active,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="itemId != null">
+                #{itemId,jdbcType=INTEGER},
+            </if>
+            <if test="total != null">
+                #{total,jdbcType=INTEGER},
+            </if>
+            <if test="startTime != null">
+                #{startTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="endTime != null">
+                #{endTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="isActive != null">
+                #{isActive,jdbcType=TINYINT},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.msr.kill.entity.ItemKill">
+        <!--@mbg.generated-->
+        update item_kill
+        <set>
+            <if test="itemId != null">
+                item_id = #{itemId,jdbcType=INTEGER},
+            </if>
+            <if test="total != null">
+                total = #{total,jdbcType=INTEGER},
+            </if>
+            <if test="startTime != null">
+                start_time = #{startTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="endTime != null">
+                end_time = #{endTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="isActive != null">
+                is_active = #{isActive,jdbcType=TINYINT},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.msr.kill.entity.ItemKill">
+        <!--@mbg.generated-->
+        update item_kill
+        set item_id = #{itemId,jdbcType=INTEGER},
+        total = #{total,jdbcType=INTEGER},
+        start_time = #{startTime,jdbcType=TIMESTAMP},
+        end_time = #{endTime,jdbcType=TIMESTAMP},
+        is_active = #{isActive,jdbcType=TINYINT},
+        create_time = #{createTime,jdbcType=TIMESTAMP}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+
+    <!--查询待秒杀的活动商品列表-->
+    <select id="selectAll" resultType="com.msr.kill.entity.ItemKill">
+        SELECT a.*,
+               b.name AS itemName,
+               (
+                   IF((now() BETWEEN a.start_time AND a.end_time AND a.total > 0), 1, 0)
+                   )  AS canKill
+        FROM item_kill AS a
+                 LEFT JOIN item AS b ON b.id = a.item_id
+        WHERE a.is_active = 1
+    </select>
+
+    <!--获取秒杀详情-->
+    <select id="selectById" resultType="com.msr.kill.entity.ItemKill">
+        SELECT
+        a.*,
+        b.name AS itemName,
+        (
+        IF((now() BETWEEN a.start_time AND a.end_time AND a.total > 0), 1, 0)
+        ) AS canKill
+        FROM item_kill AS a LEFT JOIN item AS b ON b.id = a.item_id
+        WHERE a.is_active = 1 AND a.id= #{id}
+    </select>
+
+    <!--抢购商品，剩余数量减一-->
+    <update id="updateKillItem">
+        UPDATE item_kill
+        SET total = total - 1
+        WHERE
+        id = #{killId}
+    </update>
+
+    <!--获取秒杀详情V2-->
+    <select id="selectByIdV2" resultType="com.msr.kill.entity.ItemKill">
+        SELECT
+        a.*,
+        b.name AS itemName,
+        (IF((now() BETWEEN a.start_time AND a.end_time), 1, 0)) AS canKill
+        FROM item_kill AS a LEFT JOIN item AS b ON b.id = a.item_id
+        WHERE a.is_active = 1 AND a.id =#{id} AND a.total>0
+    </select>
+
+    <!--抢购商品，剩余数量减一-->
+    <update id="updateKillItemV2">
+        UPDATE item_kill
+        SET total = total - 1
+        WHERE id = #{killId} AND total>0
+    </update>
+</mapper>
